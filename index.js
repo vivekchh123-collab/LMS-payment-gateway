@@ -10,6 +10,20 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV} mode`);
 });
 
+//Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack); 
+  res.status(err.stack||500).json({
+    status: "error",
+    message: err.message || "Something went wrong!",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
+});
+  
+//API routes
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/courses", courseRoutes);
+
 //login middlerware
 if(process.env.NODE_ENV === "development"){
   app.use(morgan("dev"));
