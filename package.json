@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "a backend for lms application",
+  "keywords": [
+    "lms",
+    "paymentgatway"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "yes"
+  },
+  "license": "ISC",
+  "author": "vivekchaurasiya",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.4",
+    "morgan": "^1.11.0",
+    "nodemon": "^3.1.14"
+  }
+}
