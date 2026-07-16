@@ -1,10 +1,25 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import mongoSatinizer from "express-mongo-sanitize";
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+//Global rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again after 15 minutes",
+});
+
+//security middleware
+app.use(helmet());
+app.use(mongoSatinize());
+app.use("/api",limiter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV} mode`);
@@ -21,10 +36,9 @@ app.use((err, req, res, next) => {
 });
   
 //API routes
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/courses", courseRoutes);
 
-//login middlerware
+
+//log middlerware
 if(process.env.NODE_ENV === "development"){
   app.use(morgan("dev"));
 }
