@@ -3,7 +3,10 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import mongoSatinizer from "express-mongo-sanitize";
+import mongoSatinize from "express-mongo-sanitize";
+import cors from "cors";
+import hpp from "hpp";
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 const app = express();
@@ -19,33 +22,29 @@ const limiter = rateLimit({
 //security middleware
 app.use(helmet());
 app.use(mongoSatinize());
-app.use("/api",limiter);
+app.use(hpp());
+app.use("/api", limiter);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-});
-
-//Global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack); 
-  res.status(err.stack||500).json({
-    status: "error",
-    message: err.message || "Something went wrong!",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
-});
-  
-//API routes
-
-
-//log middlerware
+// Log middleware
 if(process.env.NODE_ENV === "development"){
   app.use(morgan("dev"));
 }
 
-//Body Parser middlerware
+// Body parser middleware
 app.use(express.json({limit: "10kb"}));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(cookieParser());
+
+//CORSconfuguration
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  credentials: true,
+  methods:["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS","HEAD"],
+  allowedHeaders: [
+    "Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "Access-Control-Allow-Origin","device-remember-token"],
+}))
+
+// API routes
 
 
 //it should be always at bottom
@@ -58,5 +57,25 @@ app.use((req, res) => {
   });
 });
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack || err);
+  const candidateStatus = err.statusCode || err.status;
+  const statusCode = Number.isInteger(candidateStatus) && candidateStatus >= 400 && candidateStatus < 600
+    ? candidateStatus
+    : 500;
 
-console.log(process.env.PORT);
+  res.status(statusCode).json({
+    status: "error",
+    message: err.message || "Something went wrong!",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
+});
+
+export default app;
+
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`);
+  });
+}
