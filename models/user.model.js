@@ -5,6 +5,7 @@ import { type } from "os";
 import { kMaxLength } from "buffer";
 import { match } from "assert";
 import strict from "assert/strict";
+import { validateHeaderName } from "http";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -72,7 +73,9 @@ resetPasswordExpire: Date,lastActive:{
 
 
 },{
-  timestamps:true
+  timestamps:true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
 });
 
 //hasing the password
@@ -96,7 +99,19 @@ userSchema.methods.getResetPasswordToken = function(){
  .createHash('sha256')
  .update(resetToken)
  .digest('hex')
+
+ this.resetPasswordExpire = Date.now() + 10 * 60 * 1000 //10 minutes 
+ return resetToken
 }
 
+userSchema.methods.updateLastactive = function(){
+  this.lastActive = Date.now()
+  return this.lastActive({ validateBeforeSave:false});
+}
+
+//virtual field  for total enrolled course
+userSchema.virtual('totalEnrolledCourses').get(function(){
+  return this.enrolledCourses?.length ?? 0;
+})
 
 export const user = mongoose.model("User", userSchema);
