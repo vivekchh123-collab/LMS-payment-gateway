@@ -7,6 +7,8 @@ import mongoSatinize from "express-mongo-sanitize";
 import cors from "cors";
 import hpp from "hpp";
 import cookieParser from "cookie-parser";
+
+import healthRoute from './routes/health.routes.js'
 dotenv.config();
 
 const app = express();
@@ -45,7 +47,7 @@ app.use(cors({
 }))
 
 // API routes
-
+app.use("/api/v1/healthcheck", healthRoute);
 
 //it should be always at bottom
 //404 handler
