@@ -4,6 +4,8 @@ import {getDBStatus} from "../database/db";
 export const checkHealth = async(req,res) => {
     try {
         const dbStatus = getDBStatus();
+
+        
         const heathStatus = {
             status: 'OK',
             timeStamp: new Date().toISOString(),
