@@ -68,3 +68,44 @@ res.status(200).json({
     message:"Sgned out successfully"
 })    
 });
+
+export const updateUserProfile = catchAsync(async (req, res) => {
+  const { name,email, bio } = req.body;
+
+  const updateData = {
+    name,
+    email:email?.toLowerCase(),
+    bio
+  };
+  if(req.file){
+    const avatarResult = await uploadMedia(req.file.path)
+    updateData.avatar = avatarResult.secure_url
+
+    //delete old avatar
+    const user = await User.findById(req.id)
+    if(user.avatar && user.avatar !== 'default-avatar.png'){
+        await deleteMediaFromCloudinary(user.avatar)
+    }
+  }
+//update user and get updated doc
+
+const updateUser = await User.findByIdAndUpdate(
+    req.id,
+    updateData,
+    {new : true,runValidators: true}
+)
+if(!updateUser){
+    throw new ApiError("User not found",404);
+}
+
+res.status(200).json(
+    {
+        success: true,
+        message:"Profile update successfully",
+        data: updatedUser,
+    }
+)
+
+
+});
+
